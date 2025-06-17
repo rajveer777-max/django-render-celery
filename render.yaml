@@ -1,7 +1,7 @@
-# render.yaml (Corrected Version)
+# render.yaml (Final Corrected Version)
 
 databases:
-  # Free PostgreSQL Database (now in its own top-level section)
+  # Free PostgreSQL Database
   - name: my-postgres-db
     databaseName: homeo_expert_ai_db
     user: db_user
@@ -12,6 +12,9 @@ services:
   - type: redis
     name: my-redis
     plan: free
+    ipAllowList: # <--- THIS IS THE FIX
+      - cidr: 0.0.0.0/0
+        description: "Allow all internal services"
 
   # Free Web Service for Django
   - type: web
@@ -32,7 +35,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: GEMINI_API_KEY
-        sync: false # IMPORTANT: Set this manually in the Render Dashboard
+        sync: false
       - key: PYTHON_VERSION
         value: 3.10.12
 
@@ -58,6 +61,6 @@ services:
           name: django-web-app
           envVarKey: SECRET_KEY
       - key: GEMINI_API_KEY
-        sync: false # IMPORTANT: Set this manually in the Render Dashboard
+        sync: false
       - key: PYTHON_VERSION
         value: 3.10.12
