@@ -1,3 +1,5 @@
+# render.yaml (TRULY MINIMAL)
+
 databases:
   - name: my-postgres-db
     plan: free
@@ -12,19 +14,9 @@ services:
   - type: web
     name: django-celery-app
     plan: free
-    env: docker # IMPORTANT: We tell Render to use our Dockerfile
+    env: docker # Tell Render to use our Dockerfile
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: my-postgres-db
-          property: connectionString
-      - key: REDIS_URL
-        fromRedis:
-          name: my-redis
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: GEMINI_API_KEY
-        sync: false # Set this manually in the dashboard
       - key: PYTHON_VERSION
         value: 3.10.12
+      - key: SECRET_KEY
+        generateValue: true # Generate a secret key
