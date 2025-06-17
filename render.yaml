@@ -1,13 +1,13 @@
-# render.yaml
+# render.yaml (Corrected Version)
 
-services:
-  # Free PostgreSQL Database
-  - type: db
-    name: my-postgres-db
-    databaseName: homeo_expert_ai_db # You can name your database
+databases:
+  # Free PostgreSQL Database (now in its own top-level section)
+  - name: my-postgres-db
+    databaseName: homeo_expert_ai_db
     user: db_user
     plan: free
 
+services:
   # Free Redis Instance
   - type: redis
     name: my-redis
