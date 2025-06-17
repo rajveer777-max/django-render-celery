@@ -12,7 +12,7 @@ services:
       - source: 0.0.0.0/0
 
   - type: web
-    name: django-celery-app
+    name: homeo-ai
     plan: free
     env: docker # Tell Render to use our Dockerfile
     envVars:
