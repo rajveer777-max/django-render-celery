@@ -1,0 +1,603 @@
+{# templates/case_detail.html #}
+{% extends 'base_generic.html' %} {# ASSUMES base_generic.html is correctly set up #}
+{% load static %}
+{% load json_filters %}
+
+{% block title %}Case Details - Case: {{ case.id }}{% endblock %}
+
+{% block head_extra %}
+    {# Bootstrap and Font Awesome CSS are inherited from base_generic.html #}
+    {# Page-specific styles for case_detail content #}
+<style>
+  /* :root variables like --primary-blue, --secondary-accent etc. are assumed to be in base_generic.html */
+  /* body font-family 'Inter' is assumed to be in base_generic.html */
+  /* .main-page-content or similar wrapper for margin-left is in base_generic.html */
+
+  .page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 15px; margin-bottom: 25px; border-bottom: 1px solid var(--border-light, #e2e8f0);
+  }
+  .page-header .page-title {
+    font-size: 1.75rem; font-weight: 600; color: var(--primary-blue, #0d6efd);
+  }
+  .page-header .page-title i { font-size: 0.9em; margin-right: 8px; }
+
+  .case-status {
+    padding: 0.35em 0.8em; font-size: 0.8em; font-weight: 700;
+    border-radius: 1em; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;
+  }
+  .status-PENDING, .status-PROCESSING { background-color: #cfe2ff; color: #084298; border: 1px solid #b6d4fe;}
+  .status-COMPLETED { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc;}
+  .status-ERROR { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7;}
+
+  .case-tabs .nav-tabs { border-bottom: 2px solid var(--border-light, #e2e8f0); margin-bottom: 25px; }
+  .case-tabs .nav-link {
+    font-weight: 500; color: #495057; border: none; border-bottom: 2px solid transparent;
+    padding: 0.75rem 1.25rem; margin-right: 5px;
+    transition: color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  }
+  .case-tabs .nav-link:hover { color: var(--primary-blue, #0d6efd); border-bottom-color: var(--primary-blue, #0d6efd); }
+  .case-tabs .nav-link.active {
+    color: var(--primary-blue, #0d6efd); background-color: transparent;
+    border-bottom: 2px solid var(--primary-blue, #0d6efd); font-weight: 600;
+  }
+  .case-tabs .nav-link i { margin-right: 8px; }
+
+  .content-card {
+    background-color: var(--card-bg, #ffffff); border: 1px solid #e0e7ff;
+    border-radius: 10px; padding: 25px 30px; margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+  }
+  .content-card h3.card-section-title {
+    font-size: 1.25rem; color: var(--text-dark, #2d3748); font-weight: 600;
+    border-bottom: 1px solid var(--border-light, #e2e8f0); padding-bottom: 12px;
+    margin-bottom: 20px; display: flex; align-items: center;
+  }
+   .content-card h3.card-section-title i {
+    color: var(--primary-blue, #0d6efd); margin-right: 10px; font-size: 1.1em;
+   }
+
+  .detail-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0px 25px;
+  }
+  .detail-item { margin-bottom: 18px; }
+  .detail-label {
+    font-weight: 500; color: #5a6acf; display: block;
+    margin-bottom: 5px; font-size: 0.9em; text-transform: capitalize;
+  }
+  .detail-value {
+    color: var(--text-dark, #2d3748); white-space: pre-wrap; line-height: 1.6;
+    font-size: 0.95em; word-break: break-word;
+  }
+  .detail-value:empty::after { content: 'N/A'; color: #a0aec0; font-style: italic; }
+  .json-data-display .detail-item .detail-value { margin-left: 10px; }
+  .illness-item {
+    border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;
+  }
+  .illness-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+  .illness-item strong { color: var(--text-dark, #2d3748); }
+  .illness-item .text-muted { font-size: 0.9em; color: var(--text-muted-light, #718096); }
+
+  /* --- AI Analysis Results Tab Specific Styling --- */
+  .ai-analysis-content .content-card { padding: 30px; }
+  .result-block {
+    margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e9ecef;
+  }
+  .result-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .result-block-title {
+    font-size: 1.15rem; font-weight: 600; color: var(--secondary-accent, #17a2b8);
+    margin-top: 0; margin-bottom: 15px; padding-bottom: 10px;
+    display: flex; align-items: center;
+  }
+   .result-block-title.non-collapsible { /* For titles that are not triggers */
+    /* Add any specific styling if different from collapsible ones, e.g., no right padding for arrow */
+  }
+  .result-block-title i { margin-right: 10px; font-size: 1em; }
+
+  .results-section p, .results-section li {
+    white-space: pre-wrap; line-height: 1.7; font-size: 0.95em; color: #3E4A5B;
+  }
+  .results-section ul { padding-left: 25px; margin-top: 10px; margin-bottom: 18px;}
+  .results-section strong { color: #1E293B; font-weight: 600; }
+
+  .repertory-details-card {
+    background-color: #f8f9fa; border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 8px; padding: 20px; margin-top: 10px; /* Reduced margin-top */
+  }
+  .repertory-details-card h5 {
+    font-size: 1rem; font-weight: 600; color: var(--text-dark, #2d3748);
+    margin-bottom: 12px; margin-top: 15px; display: flex; align-items: center;
+  }
+  .repertory-details-card h5:first-of-type { margin-top: 0; }
+  .repertory-details-card h5 i { margin-right: 8px; color: var(--secondary-accent, #17a2b8); }
+  .repertory-block ul { list-style-type: none; padding-left: 0; }
+  .repertory-block .rubric-list-item {
+    margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #d1d9e6;
+  }
+  .repertory-block .rubric-list-item:last-child { border-bottom: none; }
+  .repertory-rubric {
+    font-family: 'Inter', sans-serif; font-size: 0.95em; display: block; color: var(--text-dark, #2d3748);
+  }
+  .repertory-rubric strong { color: var(--primary-blue, #0d6efd); }
+  .repertory-rubric .text-muted { font-size: 0.9em; color: var(--text-muted-light, #718096); }
+  .repertory-justification {
+    font-size: 0.9em; color: #5a6acf; font-style: normal;
+    margin-left: 10px; padding-left: 10px; border-left: 2px solid #d1d9e6;
+    display: block; margin-top: 6px;
+  }
+  .repertory-chart-summary-list { list-style-type: none; padding-left: 0; }
+  .repertory-chart-summary-list li { margin-bottom: 6px; font-size: 0.95em; }
+  .repertory-chart-summary-list strong { color: #004d40; }
+  .repertory-chart-summary-list span { color: #4a5568; }
+
+  .prescription-block {
+    background-color: #e7f3ff; padding: 20px; border-radius: 8px;
+    border-left: 4px solid var(--primary-blue, #0d6efd); margin-top: 25px; margin-bottom: 20px;
+  }
+  .prescription-block h5 { font-size: 1.1rem; font-weight: 600; color: #0a58ca; margin-bottom: 15px;}
+  .prescription-block p { margin-bottom: 8px; font-size: 0.95em; }
+  .prescription-block strong { color: #343a40; }
+  .allopathic-block {
+    background-color: #fff9e6; padding: 20px; border-radius: 8px;
+    border-left: 4px solid #ffc107; margin-top: 25px; margin-bottom: 20px;
+  }
+  .allopathic-block h5 { font-size: 1.1rem; font-weight: 600; color: #cc9a06; margin-bottom: 15px;}
+
+  .final-diagnosis-dict .detail-item { margin-bottom: 12px; }
+  .final-diagnosis-dict .detail-label {
+    font-weight: 600; color: var(--secondary-accent, #17a2b8); font-size: 0.95em;
+  }
+  .final-diagnosis-dict .detail-value {
+    margin-left: 0; padding-left: 15px; border-left: 2px solid #e9ecef;
+    color: var(--text-dark, #2d3748);
+  }
+
+  /* --- Styles for Collapsible AI Analysis Sections --- */
+    .result-block-title.collapsible-trigger {
+        cursor: pointer;
+        position: relative;
+        padding-right: 30px; /* Space for arrow */
+        transition: color 0.15s ease-in-out;
+    }
+    .result-block-title.collapsible-trigger:hover {
+        color: var(--primary-blue, #0d6efd); /* Highlight on hover */
+    }
+    .result-block-title.collapsible-trigger::after {
+        content: '\f078'; /* Font Awesome chevron-down */
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900; /* Solid icon */
+        position: absolute;
+        right: 5px; /* Position arrow */
+        top: 50%;
+        transform: translateY(-50%) rotate(0deg);
+        transition: transform 0.25s ease-in-out;
+        font-size: 0.75em; /* Arrow size */
+    }
+    .result-block-title.collapsible-trigger[aria-expanded="true"]::after {
+        transform: translateY(-50%) rotate(-180deg); /* Chevron-up */
+    }
+    .result-block .collapse-content {
+        padding-top: 15px; /* Space below title when expanded */
+        padding-left: 5px; /* Slight indent for content */
+    }
+    .result-block .collapse-content > *:last-child { margin-bottom: 0; }
+
+
+  @media (max-width: 767.98px) {
+    /* .main-page-content style in base_generic.html handles mobile margin */
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .page-header .page-title { margin-bottom: 10px; font-size: 1.5rem; }
+    .content-card { padding: 20px; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+
+{% block sidebar_extra_links %}
+    <li class="nav-item">
+        <span class="nav-link active" style="cursor:default; background-color: #e0e7ff; color: #0a58ca; border-radius: 25px;">
+            <i class="fas fa-file-alt nav-icon"></i> <span class="nav-text">Case: {{case.id}}</span>
+        </span>
+    </li>
+{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-file-invoice"></i>Case Details: {{ case.id }}</h1>
+        <span class="case-status status-{{ case.status }}">{{ case.get_status_display }}</span>
+    </div>
+
+    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}{% endif %}
+    {% if error_message and not results_data %}<div class="alert alert-warning mb-4" role="alert"> {{ error_message }} </div>{% endif %}
+
+    <div class="case-tabs">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <button class="nav-link active" id="nav-caseinfo-tab" data-bs-toggle="tab" data-bs-target="#nav-caseinfo" type="button" role="tab" aria-controls="nav-caseinfo" aria-selected="true">
+                    <i class="fas fa-book-medical"></i> Case Information
+                </button>
+                <button class="nav-link" id="nav-analysis-tab" data-bs-toggle="tab" data-bs-target="#nav-analysis" type="button" role="tab" aria-controls="nav-analysis" aria-selected="false">
+                    <i class="fas fa-lightbulb"></i> AI Analysis & Prescription
+                </button>
+            </div>
+        </nav>
+        <div class="tab-content pt-3" id="nav-tabContent">
+            {# --- TAB 1: Case Information (Content is the same as your "liked" version) --- #}
+            <div class="tab-pane fade show active" id="nav-caseinfo" role="tabpanel" aria-labelledby="nav-caseinfo-tab">
+                <div class="content-card">
+                    <h3 class="card-section-title"><i class="fas fa-user-friends"></i>Patient Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item"><span class="detail-label">Name:</span> <p class="detail-value">{{ case.patient_name|default:"N/A" }}</p></div>
+                        <div class="detail-item"><span class="detail-label">Age:</span> <p class="detail-value">{{ case.patient_age|default:"N/A" }}</p></div>
+                        <div class="detail-item"><span class="detail-label">Sex:</span> <p class="detail-value">{{ case.patient_sex|default:"N/A" }}</p></div>
+                        <div class="detail-item"><span class="detail-label">Occupation:</span> <p class="detail-value">{{ case.patient_occupation|default:"N/A" }}</p></div>
+                        <div class="detail-item" style="grid-column: 1 / -1;"><span class="detail-label">Address:</span> <p class="detail-value">{{ case.patient_address|default:"N/A" }}</p></div>
+                        <div class="detail-item"><span class="detail-label">Phone:</span> <p class="detail-value">{{ case.patient_phone|default:"N/A" }}</p></div>
+                        <div class="detail-item"><span class="detail-label">OPD No:</span> <p class="detail-value">{{ case.opd_no|default:"N/A" }}</p></div>
+                        <div class="detail-item"><span class="detail-label">Date Recorded:</span> <p class="detail-value">{{ case.date|date:"M d, Y"|default:"N/A" }}</p></div>
+                    </div>
+                </div>
+                <div class="content-card">
+                    <h3 class="card-section-title"><i class="fas fa-file-signature"></i>Complaint & Present History</h3>
+                    <div class="detail-item"><span class="detail-label">Presenting Complaints:</span> <p class="detail-value">{{ case.presenting_complaints|default:"N/A"|apply_formatting }}</p></div>
+                    <div class="detail-item"><span class="detail-label">History of Present Illness:</span> <p class="detail-value">{{ case.history_of_present_illness|default:"N/A"|apply_formatting }}</p></div>
+                 </div>
+                <div class="content-card">
+                    <h3 class="card-section-title"><i class="fas fa-notes-medical"></i>Past History</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Vaccination History:</span>
+                        <p class="detail-value">{{ case.past_history_vaccination|default:"N/A"|apply_formatting }}</p>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Past Illnesses:</span>
+                        {% for illness in case.past_illnesses.all %}
+                            <div class="illness-item">
+                                <strong>{{ illness.disease|default:"Unnamed Illness" }}</strong>
+                                {% if illness.approximate_age %}<span class="text-muted"> (Age: {{ illness.approximate_age }})</span>{% endif %}
+                                {% if illness.duration %}<br><span class="detail-label" style="display: inline;">Duration:</span> {{ illness.duration }}{% endif %}
+                                {% if illness.treatment %}<br><span class="detail-label" style="display: inline;">Treatment:</span> {{ illness.treatment|apply_formatting }}{% endif %}
+                                {% if illness.completely_recovered is not None %}<br><span class="detail-label" style="display: inline;">Recovered:</span> {{ illness.completely_recovered|yesno:"Yes,No,N/A" }}{% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="detail-value">No past illnesses recorded.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="content-card">
+                     <h3 class="card-section-title"><i class="fas fa-users"></i>Family History</h3>
+                     <p class="detail-value">{{ case.family_history|default:"N/A"|apply_formatting }}</p>
+                </div>
+                <div class="content-card">
+                    <h3 class="card-section-title"><i class="fas fa-user-tag"></i>Personal History</h3>
+                    <div class="json-data-display detail-grid">
+                        {% for key, value in case.personal_history.items %}
+                           {% if value and key != 'other' %}
+                           <div class="detail-item">
+                               <span class="detail-label">{{ key|capfirst|replace_str:"_, " }}:</span>
+                               <p class="detail-value">{{ value|apply_formatting }}</p>
+                           </div>
+                           {% endif %}
+                        {% empty %} <p class="text-muted col-12">No structured personal history details.</p> {% endfor %}
+                    </div>
+                    {% if case.personal_history.other %}
+                        <div class="detail-item mt-3"><span class="detail-label">Other Personal Notes:</span><p class="detail-value">{{ case.personal_history.other|apply_formatting }}</p></div>
+                    {% endif %}
+                </div>
+                <div class="content-card">
+                    <h3 class="card-section-title"><i class="fas fa-venus-mars"></i>Menstrual History</h3>
+                    <div class="json-data-display detail-grid">
+                        {% for key, value in case.menstrual_history.items %}
+                           {% if key == 'menopause' and value|is_dict %}
+                               <div class="detail-item" style="grid-column: 1 / -1;">
+                                   <span class="detail-label">Menopause:</span>
+                                   {% if value.age or value.complaints %}
+                                       <p class="detail-value" style="margin-left: 15px;"><strong style="color:#555">Age:</strong> {{ value.age|default:"N/A" }}</p>
+                                       <p class="detail-value" style="margin-left: 15px;"><strong style="color:#555">Complaints:</strong> {{ value.complaints|default:"N/A"|apply_formatting }}</p>
+                                   {% else %} <p class="detail-value" style="margin-left: 15px;">N/A</p> {% endif %}
+                               </div>
+                           {% elif value %}
+                               <div class="detail-item">
+                                   <span class="detail-label">{{ key|capfirst|replace_str:"_, " }}:</span>
+                                   <p class="detail-value">{{ value|apply_formatting }}</p>
+                               </div>
+                           {% endif %}
+                        {% empty %} <p class="text-muted col-12">No menstrual history details.</p> {% endfor %}
+                    </div>
+                </div>
+                <div class="content-card">
+                    <h3 class="card-section-title"><i class="fas fa-user-md"></i>Physical Examination</h3>
+                    <div class="json-data-display detail-grid">
+                        {% for key, value in case.physical_examination.items %}
+                            {% if value and key != 'other' %}
+                            <div class="detail-item">
+                                <span class="detail-label">{{ key|capfirst|replace_str:"_, " }}:</span>
+                                <p class="detail-value">{{ value|apply_formatting }}</p>
+                            </div>
+                            {% endif %}
+                        {% empty %} <p class="text-muted col-12">No structured physical examination details.</p> {% endfor %}
+                    </div>
+                     {% if case.physical_examination.other %}
+                        <div class="detail-item mt-3"><span class="detail-label">Other Physical Notes:</span><p class="detail-value">{{ case.physical_examination.other|apply_formatting }}</p></div>
+                    {% endif %}
+                </div>
+                 <div class="content-card">
+                     <h3 class="card-section-title"><i class="fas fa-brain"></i>Patient as Person (Mind/Disposition)</h3>
+                     <p class="detail-value">{{ case.patient_as_person|default:"N/A"|apply_formatting }}</p>
+                 </div>
+                 <div class="content-card">
+                     <h3 class="card-section-title"><i class="fas fa-diagnoses"></i>Systemic Examination</h3>
+                     <p class="detail-value">{{ case.systemic_examination|default:"N/A"|apply_formatting }}</p>
+                 </div>
+            </div>
+
+            {# --- TAB 2: AI Analysis & Prescription --- #}
+            <div class="tab-pane fade" id="nav-analysis" role="tabpanel" aria-labelledby="nav-analysis-tab">
+              <div class="ai-analysis-content">
+                {% if results_data %}
+                <div class="content-card results-section">
+                    <h3 class="card-section-title" style="color: var(--primary-blue, #0d6efd); border-bottom-color: var(--primary-blue, #0d6efd);"><i class="fas fa-magic"></i>AI Analysis Overview</h3>
+
+                    {% with analysis=results_data.analysis_and_evaluation_of_symptoms %}
+                        {% if analysis %}
+                        <div class="result-block">
+                            <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseAnalysisEval" aria-expanded="false" aria-controls="collapseAnalysisEval">
+                                <i class="fas fa-search-plus"></i>Analysis & Evaluation:
+                            </h4>
+                            <div class="collapse" id="collapseAnalysisEval">
+                                <div class="collapse-content">
+                                    <p>{{ analysis|apply_formatting }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                     {% with miasm=results_data.miasmatic_assessment %}
+                        {% if miasm %}
+                        <div class="result-block">
+                            <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseMiasm" aria-expanded="false" aria-controls="collapseMiasm">
+                                <i class="fas fa-shield-virus"></i>Miasmatic Assessment:
+                            </h4>
+                            <div class="collapse" id="collapseMiasm">
+                                <div class="collapse-content">
+                                    <p>{{ miasm|apply_formatting }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                     {% endwith %}
+
+                     {% if case_type_value %}
+                     <div class="result-block">
+                        <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseCaseType" aria-expanded="false" aria-controls="collapseCaseType">
+                            <i class="fas fa-clipboard-list"></i>Case Type (Acute/Chronic):
+                        </h4>
+                        <div class="collapse" id="collapseCaseType">
+                            <div class="collapse-content">
+                                <p>{{ case_type_value|apply_formatting }}</p>
+                            </div>
+                        </div>
+                     </div>
+                     {% endif %}
+
+                    {% with diag=results_data.provisional_diagnosis %}
+                        {% if diag %}
+                        <div class="result-block">
+                            <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseProvisionalDiag" aria-expanded="false" aria-controls="collapseProvisionalDiag">
+                                <i class="fas fa-diagnoses"></i>Provisional Diagnosis:
+                            </h4>
+                            <div class="collapse" id="collapseProvisionalDiag">
+                                <div class="collapse-content">
+                                    {% if diag|is_dict %}
+                                        <div class="detail-item"><span class="detail-label">Clinical:</span> <p class="detail-value">{{ diag.conventional|default:"N/A"|apply_formatting }}</p></div>
+                                        <div class="detail-item"><span class="detail-label">Homeopathic:</span> <p class="detail-value">{{ diag.homeopathic|default:"N/A"|apply_formatting }}</p></div>
+                                    {% else %} <p>{{ diag|apply_formatting }}</p> {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                     {% with diff_diag=results_data.differential_diagnosis %}
+                        {% if diff_diag %}
+                        <div class="result-block">
+                            <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseDiffDiag" aria-expanded="false" aria-controls="collapseDiffDiag">
+                                <i class="fas fa-random"></i>Differential Diagnosis:
+                            </h4>
+                            <div class="collapse" id="collapseDiffDiag">
+                                <div class="collapse-content">
+                                    <p>{{ diff_diag|apply_formatting }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                     {% endwith %}
+
+                    {% with final_diag_data=results_data.final_diagnosis %}
+                        {% if final_diag_data %}
+                            <div class="result-block final-diagnosis-dict">
+                                <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseFinalDiag" aria-expanded="false" aria-controls="collapseFinalDiag">
+                                    <i class="fas fa-check-double"></i>Final Diagnosis:
+                                </h4>
+                                <div class="collapse" id="collapseFinalDiag">
+                                    <div class="collapse-content">
+                                        {% if final_diag_data|is_dict %}
+                                            {% for key, text_val in final_diag_data.items %}
+                                                <div class="detail-item">
+                                                    <span class="detail-label">{{ key|capfirst|replace_str:"_, " }}:</span>
+                                                    <p class="detail-value">{{ text_val|apply_formatting }}</p>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %} <p>{{ final_diag_data|apply_formatting }}</p> {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% with repertory=results_data.repertorization_analysis %}
+                        {% if repertory %}
+                        <div class="result-block repertory-block">
+                            <h4 class="result-block-title collapsible-trigger" data-bs-toggle="collapse" data-bs-target="#collapseRepertory" aria-expanded="false" aria-controls="collapseRepertory">
+                                <i class="fas fa-sitemap"></i>Repertorization Analysis:
+                            </h4>
+                            <div class="collapse" id="collapseRepertory">
+                                <div class="collapse-content">
+                                    <div class="repertory-details-card">
+                                        {% if repertory|is_dict %}
+                                            {% if repertory.strategy %} <p><strong>Strategy:</strong> {{ repertory.strategy|apply_formatting }}</p> {% endif %}
+                                            {% if repertory.selected_rubrics %}
+                                                <h5><i class="fas fa-list-ul"></i>Selected Rubrics:</h5>
+                                                <ul>
+                                                {% for rubric_item in repertory.selected_rubrics %}
+                                                    <li class="rubric-list-item">
+                                                        <span class="repertory-rubric"><strong>{{ rubric_item.rubric|default:'N/A' }}</strong>{% if rubric_item.intensity %}<span class="text-muted"> ({{ rubric_item.intensity }})</span>{% endif %}</span>
+                                                        {% if rubric_item.justification %}<span class="repertory-details repertory-justification">{{ rubric_item.justification|apply_formatting }}</span>{% endif %}
+                                                    </li>
+                                                {% empty %} <li>No rubrics listed.</li> {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                             {% if repertory.repertorization_chart_summary %}
+                                                <h5 class="mt-3"><i class="fas fa-chart-bar"></i>Repertorization Chart Summary:</h5>
+                                                <ul class="repertory-chart-summary-list">
+                                                {% for remedy_summary in repertory.repertorization_chart_summary %}
+                                                    <li><strong>{{ remedy_summary.remedy|default:'N/A' }}:</strong><span> Score: {{ remedy_summary.score|default:'N/A' }}; Covered: {{ remedy_summary.symptoms_covered|default:'N/A' }} </span></li>
+                                                {% empty %} <li>No chart summary provided.</li> {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                            {% if repertory.notes %} <p class="mt-3"><strong>Notes:</strong> {{ repertory.notes|apply_formatting }}</p> {% endif %}
+                                        {% else %} <p>{{ repertory|apply_formatting }}</p> {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    {# --- ALWAYS VISIBLE SECTIONS --- #}
+                    {% with remedies=results_data.group_of_remedies %}
+                        {% if remedies %}
+                        <div class="result-block">
+                            <h4 class="result-block-title non-collapsible"><i class="fas fa-pills"></i>Group of Potential Remedies (Differentiation):</h4>
+                            <ul> {% for remedy_info in remedies %}<li>{{ remedy_info|apply_formatting }}</li>{% empty %}<li>No remedies listed.</li>{% endfor %} </ul>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% with pres=results_data.homeopathic_prescription %}
+                        {% if pres %}
+                        <div class="prescription-block">
+                            <h5><i class="fas fa-prescription-bottle-alt me-2"></i>Homeopathic Prescription</h5>
+                            {% if pres|is_dict %}
+                                 <p><strong>Remedy:</strong> {{ pres.remedy|default:"N/A" }}</p>
+                                 <p><strong>Potency:</strong> {{ pres.potency|default:"N/A" }}</p>
+                                 <p><strong>Posology:</strong> {{ pres.posology|default:"N/A"|apply_formatting }}</p>
+                                 {% if pres.justification %}<p><strong>Justification:</strong> {{ pres.justification|apply_formatting }}</p>{% endif %}
+                            {% elif pres %} <p>{{ pres|apply_formatting }}</p>
+                            {% else %} <p>No details provided.</p> {% endif %}
+                        </div>
+                        {% else %} <p class="text-muted mt-3">No homeopathic prescription available.</p> {% endif %}
+                    {% endwith %}
+
+                    {% with allo_pres=results_data.allopathic_prescription_suggestion %}
+                        {% if allo_pres and allo_pres|is_dict %}
+                             {% if allo_pres.drug or allo_pres.indication %}
+                                <div class="allopathic-block">
+                                    <h5><i class="fas fa-tablets me-2"></i>Allopathic Suggestion (Optional)</h5>
+                                    {% if allo_pres.indication %}<p><strong>Indication:</strong> {{ allo_pres.indication|apply_formatting }}</p>{% endif %}
+                                    {% if allo_pres.drug %}<p><strong>Drug:</strong> {{ allo_pres.drug|apply_formatting }}</p>{% endif %}
+                                    {% if allo_pres.dose %}<p><strong>Dose:</strong> {{ allo_pres.dose|apply_formatting }}</p>{% endif %}
+                                    {% if allo_pres.route %}<p><strong>Route:</strong> {{ allo_pres.route|apply_formatting }}</p>{% endif %}
+                                    {% if allo_pres.frequency %}<p><strong>Frequency:</strong> {{ allo_pres.frequency|apply_formatting }}</p>{% endif %}
+                                    {% if allo_pres.duration %}<p><strong>Duration:</strong> {{ allo_pres.duration|apply_formatting }}</p>{% endif %}
+                                    {% if allo_pres.justification_or_notes %}<p><strong>Notes:</strong> {{ allo_pres.justification_or_notes|apply_formatting }}</p>{% endif %}
+                                </div>
+                             {% endif %}
+                        {% elif allo_pres and allo_pres != "N/A" %}
+                            <div class="result-block"> <h4 class="result-block-title non-collapsible"><i class="fas fa-tablets"></i>Allopathic Suggestion:</h4> <p class="text-muted">{{ allo_pres|apply_formatting }}</p> </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                {% elif not error_message %}
+                     <div class="alert alert-info mt-4" role="alert"><i class="fas fa-info-circle me-2"></i>No analysis results found. Current Status: {{ case.get_status_display }}.</div>
+                {% endif %}
+              </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block page_specific_active_link_script %}
+    // This script runs after the general active link logic in base_generic.html
+    // It ensures the "Case: XX" item in the sidebar is styled as active specifically for this page
+    // No new <script> tags here, as this block is already inside a <script> context from base_generic.html
+
+    // Use a more specific selector to avoid clearing active state of dashboard link if on case detail
+    const caseDetailPathIdentifier = `/case/{{ case.id }}`;
+    if (window.location.pathname.includes(caseDetailPathIdentifier)) {
+        const allSidebarLinks = document.querySelectorAll('.sidebar .sidebar-inner-nav .nav-link');
+        allSidebarLinks.forEach(link => {
+            // Remove active from all standard links
+            if (link.getAttribute('href')) { // Only target actual links
+                 link.classList.remove('active');
+            }
+            // Also clear specific styles if they were set by a more general rule
+            if(link.style.backgroundColor === 'rgb(224, 231, 255)') { // Example, match the color
+                link.style.backgroundColor = '';
+                link.style.color = '';
+            }
+        });
+
+        // Find and specifically style the "Case: XX" item (which is a span in your current sidebar setup)
+        const caseDisplaySpan = document.querySelector('.sidebar .nav-link.active span.nav-text'); // Assuming it's already marked active by the general logic if applicable
+                                                                                                   // Or a more direct selector if you add one.
+                                                                                                   // Let's find it by text content if it's not a link.
+        const sidebarNavItems = document.querySelectorAll('.sidebar .sidebar-inner-nav .nav-item');
+        sidebarNavItems.forEach(item => {
+            const spanElement = item.querySelector('span.nav-link > span.nav-text'); // For the non-link "Case: XX"
+            if (spanElement && spanElement.textContent.trim() === `Case: {{case.id}}`) {
+                const parentLinkSpan = spanElement.closest('span.nav-link');
+                if (parentLinkSpan) {
+                    parentLinkSpan.classList.add('active'); // Ensure outer span gets active class too if needed
+                    parentLinkSpan.style.backgroundColor = '#e0e7ff';
+                    parentLinkSpan.style.color = '#0a58ca';
+                    parentLinkSpan.style.cursor = 'default'; // Explicitly make it non-clickable appearance
+                }
+            }
+        });
+    }
+{% endblock %}
+
+{% block scripts_extra %}
+    {# Bootstrap JS for tabs is inherited from base_generic.html if it includes bootstrap.bundle.min.js #}
+    {# If not, uncomment the line below or ensure it's in base_generic.html #}
+    {# <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Basic Bootstrap Tab activation (usually handled by data-attributes, but this is a fallback)
+            var triggerTabList = [].slice.call(document.querySelectorAll('#nav-tab button[data-bs-toggle="tab"]'));
+            triggerTabList.forEach(function (triggerEl) {
+                var tabTrigger = new bootstrap.Tab(triggerEl);
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    tabTrigger.show();
+                });
+            });
+
+            // Optional: If you want to handle URL hashes to open specific tabs
+            // var hash = window.location.hash;
+            // if (hash) {
+            //     var triggerEl = document.querySelector('#nav-tab button[data-bs-target="' + hash + '"]');
+            //     if (triggerEl) {
+            //         var tabTrigger = new bootstrap.Tab(triggerEl);
+            //         tabTrigger.show();
+            //         // Smooth scroll to tab content if needed
+            //         // document.querySelector(hash).scrollIntoView({ behavior: 'smooth' });
+            //     }
+            // }
+        });
+    </script>
+{% endblock %}

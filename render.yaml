@@ -1,0 +1,63 @@
+# render.yaml
+
+services:
+  # Free PostgreSQL Database
+  - type: db
+    name: my-postgres-db
+    databaseName: homeo_expert_ai_db # You can name your database
+    user: db_user
+    plan: free
+
+  # Free Redis Instance
+  - type: redis
+    name: my-redis
+    plan: free
+
+  # Free Web Service for Django
+  - type: web
+    name: django-web-app
+    env: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn homeo_expert_ai.wsgi"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-postgres-db
+          property: connectionString
+      - key: REDIS_URL
+        fromRedis:
+          name: my-redis
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false # IMPORTANT: Set this manually in the Render Dashboard
+      - key: PYTHON_VERSION
+        value: 3.10.12
+
+  # Free Background Worker for Celery
+  - type: worker
+    name: celery-worker
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A homeo_expert_ai worker --loglevel=info"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-postgres-db
+          property: connectionString
+      - key: REDIS_URL
+        fromRedis:
+          name: my-redis
+          property: connectionString
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: django-web-app
+          envVarKey: SECRET_KEY
+      - key: GEMINI_API_KEY
+        sync: false # IMPORTANT: Set this manually in the Render Dashboard
+      - key: PYTHON_VERSION
+        value: 3.10.12

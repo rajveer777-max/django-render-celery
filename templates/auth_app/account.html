@@ -1,0 +1,139 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Account Access - Homeopathic AI</title>
+
+    <link rel="stylesheet" href="{% static 'auth_assets/fonts/material-icon/css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" href="{% static 'auth_assets/css/style.css' %}">
+</head>
+<body>
+
+    <div class="main">
+
+        <!-- Sign up form -->
+        <section class="signup">
+            <div class="container">
+                <div class="signup-content">
+                    <div class="signup-form">
+                        <h2 class="form-title">Sign up</h2>
+                        <form method="POST" action="{% url 'auth_app:signup' %}" class="register-form" id="register-form">
+                            {% csrf_token %}
+
+                            {# Signup Non-Field Errors #}
+                            {% if signup_form.non_field_errors %}
+                                <div class="form-group form-errors">
+                                    {{ signup_form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            {# Signup Username #}
+                            <div class="form-group">
+                                <label for="{{ signup_form.username.id_for_label }}"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                                {{ signup_form.username }}
+                                {% if signup_form.username.errors %}
+                                    <div class="field-errors">{{ signup_form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            {# Signup Password 1 #}
+                            <div class="form-group">
+                                <label for="{{ signup_form.password1.id_for_label }}"><i class="zmdi zmdi-lock"></i></label>
+                                {{ signup_form.password1 }}
+                                {% if signup_form.password1.errors %}
+                                    <div class="field-errors">{{ signup_form.password1.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            {# Signup Password 2 #}
+                            <div class="form-group">
+                                <label for="{{ signup_form.password2.id_for_label }}"><i class="zmdi zmdi-lock-outline"></i></label>
+                                {{ signup_form.password2 }}
+                                {% if signup_form.password2.errors %}
+                                    <div class="field-errors">{{ signup_form.password2.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            {# Signup Submit #}
+                            <div class="form-group form-button">
+                                <input type="submit" name="signup" id="signup" class="form-submit" value="Register"/>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="signup-image">
+                        <figure><img src="{% static 'auth_assets/images/signup-image.jpg' %}" alt="sign up image"></figure>
+                        <a href="#" class="signup-image-link">I am already member</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sign in Form -->
+        <section class="sign-in">
+            <div class="container">
+                <div class="signin-content">
+                    <div class="signin-image">
+                        <figure><img src="{% static 'auth_assets/images/signin-image.jpg' %}" alt="sign in image"></figure>
+                        <a href="#" class="signup-image-link">Create an account</a>
+                    </div>
+
+                    <div class="signin-form">
+                        <h2 class="form-title">Sign in</h2>
+                         {# *** LOGIN FORM: Uses 'form' variable now *** #}
+                        <form method="POST" action="{% url 'auth_app:login' %}" class="register-form" id="login-form">
+                            {% csrf_token %}
+
+                            {# *** Use 'form' for Login Non-Field Errors *** #}
+                            {% if form.non_field_errors %}
+                                <div class="form-group form-errors">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            {# *** Use 'form' for Login Username *** #}
+                            <div class="form-group">
+                                <label for="{{ form.username.id_for_label }}"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="field-errors">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            {# *** Use 'form' for Login Password *** #}
+                            <div class="form-group">
+                                <label for="{{ form.password.id_for_label }}"><i class="zmdi zmdi-lock"></i></label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="field-errors">{{ form.password.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            {# Login Submit #}
+                            <div class="form-group form-button">
+                                <input type="submit" name="signin" id="signin" class="form-submit" value="Log in"/>
+                            </div>
+                        </form>
+                        <div class="social-login">
+                            <span class="social-label">Or login with</span>
+                            <ul class="socials">
+                                <li><a href="#"><i class="display-flex-center zmdi zmdi-facebook"></i></a></li>
+                                <li><a href="#"><i class="display-flex-center zmdi zmdi-twitter"></i></a></li>
+                                <li><a href="#"><i class="display-flex-center zmdi zmdi-google"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- JS -->
+    <script src="{% static 'auth_assets/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'auth_assets/js/main.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+{% load static %}
+
+<!doctype html>
+<html class="no-js" lang="zxx">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>HomeoAI - Effortless Solutions Endless Possibilities</title>
+    <meta name="author" content="HomeoAI">
+    <meta name="description" content="HomeoAI">
+    <meta name="keywords" content="HomeoAI">
+    <meta name="robots" content="INDEX,FOLLOW">
+
+    <!-- Mobile Specific Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Favicons - Place favicon.ico in the root directory -->
+    <!-- Consider updating these with your own favicons -->
+    <link rel="apple-touch-icon" sizes="57x57" href="{% static 'assets/img/favicons/apple-icon-57x57.png' %}">
+    <link rel="apple-touch-icon" sizes="60x60" href="{% static 'assets/img/favicons/apple-icon-60x60.png' %}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'assets/img/favicons/apple-icon-72x72.png' %}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'assets/img/favicons/apple-icon-76x76.png' %}">
+    <link rel="apple-touch-icon" sizes="114x114" href="{% static 'assets/img/favicons/apple-icon-114x114.png' %}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{% static 'assets/img/favicons/apple-icon-120x120.png' %}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'assets/img/favicons/apple-icon-144x144.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'assets/img/favicons/apple-icon-152x152.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'assets/img/favicons/apple-icon-180x180.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'assets/img/favicons/android-icon-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'assets/img/favicons/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'assets/img/favicons/favicon-96x96.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/img/favicons/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'assets/img/favicons/manifest.json' %}">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="{% static 'assets/img/favicons/ms-icon-144x144.png' %}">
+    <meta name="theme-color" content="#ffffff">
+
+    <!--==============================
+    Google Fonts
+    ============================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <!--==============================
+        All CSS File
+    ============================== -->
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+    <!-- Fontawesome Icon -->
+    <link rel="stylesheet" href="{% static 'assets/css/fontawesome.min.css' %}">
+    <!-- Magnific Popup -->
+    <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.min.css' %}">
+    <!-- Swiper Slider -->
+    <link rel="stylesheet" href="{% static 'assets/css/swiper-bundle.min.css' %}">
+    <!-- Theme Custom CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+    <style>
+        #myHeroImage {
+            transition: transform 0.4s ease-out, box-shadow 0.4s ease-out; /* Smooth transitions */
+            /* You can add a default static transform here if you want */
+            /* transform: perspective(800px) rotateY(5deg); */
+        }
+
+        /* --- EXPERIMENT WITH THESE EFFECTS --- */
+
+        /* Effect 1: Simple Skew on Hover */
+        /*
+        .hero-img:hover #myHeroImage {
+            transform: skewY(-5deg) skewX(3deg);
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.2);
+        }
+        */
+
+        /* Effect 2: Perspective Rotate on Hover (Similar to tilt but CSS only) */
+        /*
+        .hero-img {
+            perspective: 1000px; /* Apply perspective to the parent */
+        }
+        .hero-img:hover #myHeroImage {
+            transform: rotateY(15deg) rotateX(5deg) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+        }
+        */
+
+        /* Effect 3: Slight "Lift and Lean" on Hover */
+        /*
+        .hero-img:hover #myHeroImage {
+            transform: translateY(-10px) rotateZ(2deg) scale(1.03);
+            box-shadow: 5px 15px 25px rgba(0,0,0,0.15);
+        }
+        */
+
+        /* Effect 4: Adding a static "bend" or "curve" illusion using pseudo-elements (More complex) */
+        /* This is more for a static look, not a hover effect, and is an illusion. */
+        
+        .hero-img {
+            position: relative;
+            overflow: hidden; /* Important for this pseudo-element trick */
+            border-radius: 15px; /* Optional: round the container */
+        }
+        #myHeroImage {
+            display: block;
+            width: 100%;
+            border-radius: 15px; /* Match container if using */
+        }
+        .hero-img::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 140%;
+            height: 150%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: rotate(15deg);
+            z-index: 1;
+            pointer-events: none; /* So it doesn't interfere with hover on image */
+        }
+        */
+
+
+        /* --- TO RE-ENABLE TILT.JS IF YOU WANT TO COMBINE --- */
+        /* If you re-add `tilt-active` to the div, tilt.js will take over hover transforms.
+           But you can still add static base transforms or shadows with CSS.
+           Example: Static slight rotation as a base for tilt.js
+        */
+        /*
+        .hero-img.tilt-active {
+             transform: perspective(1000px) rotateY(3deg) rotateX(-2deg);
+             box-shadow: 5px 5px 20px rgba(0,0,0,0.1);
+        }
+        */
+
+    </style>
+
+</head>
+
+<body>
+
+    <!--[if lte IE 9]>
+    	<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+    <![endif]-->
+
+    <!--********************************
+   	Code Start From Here 
+	******************************** -->
+
+    <!--==============================
+     Preloader
+    ==============================-->
+    <div id="preloader" class="preloader ">
+        <button class="th-btn th-radius preloaderCls">Cancel Preloader </button>
+        <div class="preloader">
+            <div class="loading-container">
+                <div class="loading"></div>
+                <div class="preloader-logo">
+                    <!-- MODIFIED LOGO & URL -->
+                    <a class="icon-masking" href="{% url 'core:home' %}"><span data-mask-src="{% static 'assets/img/my_logo.png' %}" class="mask-icon"></span><img src="{% static 'assets/img/my_logo.png' %}" alt="HomeoAI"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--==============================
+    Sidemenu - TO BE REMOVED
+    ============================== -->
+    <!-- SIDEMENU SECTION TO BE REMOVED START -->
+    <!-- 
+    <div class="sidemenu-wrapper d-none d-lg-block ">
+        ... entire sidemenu content ...
+    </div>
+    <div class="popup-search-box d-none d-lg-block">
+        ... entire search box content ...
+    </div>
+    -->
+    <!-- SIDEMENU SECTION TO BE REMOVED END -->
+
+
+    <!--==============================
+    Mobile Menu - TO BE REMOVED or HEAVILY SIMPLIFIED if you need mobile nav
+    For now, let's remove it as the main nav will also be simplified.
+    ============================== -->
+    <!-- MOBILE MENU SECTION TO BE REMOVED START -->
+    <!--
+    <div class="th-menu-wrapper">
+        <div class="th-menu-area text-center">
+            <button class="th-menu-toggle"><i class="fal fa-times"></i></button>
+            <div class="mobile-logo">
+                <a href="{% url 'core:home' %}"><img src="{% static 'assets/img/my_logo.png' %}" alt="HomeoAI"></a>
+            </div>
+            <div class="th-mobile-menu">
+                <ul>
+                     Remove or simplify menu items if kept 
+                </ul>
+            </div>
+        </div>
+    </div>
+    -->
+    <!-- MOBILE MENU SECTION TO BE REMOVED END -->
+
+
+    <!--==============================
+    Header Area
+    ==============================-->
+    <header class="th-header header-layout1 header-absolute">
+        <div class="sticky-wrapper">
+            <div class="container">
+                <!-- Main Menu Area -->
+                <div class="menu-area">
+                    <div class="row align-items-center justify-content-between">
+                        <div class="col-auto">
+                            <div class="header-logo">
+                                <!-- MODIFIED LOGO and Link -->
+                                <a class="icon-masking" href="{% url 'core:home' %}"> <img src="{% static 'assets/img/my_logo.png' %}" alt="HomeoAI" style="max-height: 50px;"></a>
+                                <!-- Optional: Add company name text if logo isn't enough -->
+                                 <a href="{% url 'core:home' %}" style="text-decoration: none; color: inherit; font-size: 24px; font-weight: bold; margin-left: 10px;">HomeoAI</a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <nav class="main-menu style2 d-none d-lg-inline-block">
+                                <ul>
+                                    <!-- Main navigation items removed or simplified as per your needs -->
+                                    <!-- Example: Keep only a link to pricing or features if you have separate pages -->
+                                    <!-- <li><a href="#pricing-sec">Pricing</a></li> -->
+                                    <!-- <li><a href="#features-sec">Features</a></li> -->
+                                </ul>
+                            </nav>
+                            <div class="header-button">
+                                <button type="button" class="th-menu-toggle d-inline-block d-lg-none"><i class="far fa-bars"></i></button> <!-- This toggles mobile menu, if you remove mobile menu, remove this -->
+                            </div>
+                        </div>
+                        <div class="col-auto d-none d-lg-block">
+                            <div class="header-button">
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'core:dashboard' %}" class="th-btn">Dashboard</a> <!-- MODIFIED: Link to dashboard -->
+                                {% else %}
+                                    <a href="{% url 'core:dashboard' %}" class="th-btn">Login</a> <!-- Kept as per original template, ensure this URL name is correct for your auth app -->
+                                    <!-- Or if you have a sign up page distinct from start_trial -->
+                                    
+                                {% endif %}
+                                <!-- <a href="#" class="icon-btn sideMenuToggler"><i class="fa-light fa-grid"></i></a> --> <!-- REMOVED Side menu toggler -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!--==============================
+    Hero Area
+    ==============================-->
+    <div class="th-hero-wrapper hero-1" id="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-xl-6">
+                    <div class="hero-style1">
+                        <!-- MODIFIED Sub-title -->
+                        <span class="sub-title">Welcome to HomeoAI</span>
+                        <h1 class="hero-title">Effortless Solutions Endless Possibilities</h1>
+                        <p class="hero-text">Provide a brief overview of your SaaS product, explaining what it does and how
+                            it can
+                            benefit the user.</p>
+                        <div class="btn-group">
+                            <!-- MODIFIED Button Logic -->
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'core:dashboard' %}" class="th-btn">Go to Dashboard</a>
+                            {% else %}
+                                <a href="{% url 'core:start_trial' %}" class="th-btn">Get Started For Free</a>
+                            {% endif %}
+                            
+                            <!-- Watch Video Button REMOVED -->
+                            <!-- 
+                            <div class="call-btn">
+                                <a href="https://www.youtube.com/watch?v=_sI_Ps7JSEk" class="play-btn popup-video">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <div class="media-body">
+                                    <a href="https://www.youtube.com/watch?v=_sI_Ps7JSEk" class="btn-title popup-video">Watch Video</a>
+                                </div>
+                            </div>
+                            -->
+                        </div>
+                        <div class="client-box mb-sm-0 mb-3">
+                            <!-- Avatars REMOVED - you can add a single representative icon or leave this part out -->
+                            
+                            <div class="client-thumb-group">
+                                <div class="thumb"><img src="{% static 'assets/img/shape/client-1-1.png' %}" alt="avater"></div>
+                                <div class="thumb"><img src="{% static 'assets/img/shape/client-1-2.png' %}" alt="avater"></div>
+                                <div class="thumb"><img src="{% static 'assets/img/shape/client-1-3.png' %}" alt="avater"></div>
+                                <div class="thumb icon"><i class="fa-regular fa-plus"></i></div>
+                            </div>
+                        
+                            <div class="cilent-box" style="padding-left: 0;"> <!-- Adjusted padding if avatars removed -->
+                                <h4 class="box-title"><span class="counter-number">10</span>k+ Happy Clients</h4>
+                                <div class="client-wrapp">
+                                    <div class="client-review">
+                                        <i class="fa-sharp fa-solid fa-star"></i><i class="fa-sharp fa-solid fa-star"></i><i class="fa-sharp fa-solid fa-star"></i><i class="fa-sharp fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star-half-stroke"></i>
+                                    </div>
+                                    <span class="rating">4.8 Rating</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="hero-img"> <!-- Removed tilt-active for now to avoid JS interference -->
+                        <img src="{% static 'assets/img/hero_banner_main.png' %}" alt="Hero Image for HomeoAI" id="myHeroImage"> <!-- Added an ID for easier targeting -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ripple-shape">
+            <span class="ripple-1"></span>
+            <span class="ripple-2"></span>
+            <span class="ripple-3"></span>
+            <span class="ripple-4"></span>
+            <span class="ripple-5"></span>
+        </div>
+        <div class="th-circle">
+            <span class="circle style1"></span>
+            <span class="circle style2"></span>
+            <span class="circle style3"></span>
+        </div>
+    </div>
+    <!--======== / Hero Section ========-->
+
+    <!-- SECTIONS TO BE REMOVED START (Brand, About, Process, Customization, Counter, Download, Price, Testimonial, Blog) -->
+    <!-- 
+        <div class="brand-sec4 overflow-hidden space"> ... </div>
+        <div class="position-relative overflow-hidden space-bottom"> ... </div> (Our Features)
+        <div class="about-area space-extra2" id="about-sec"> ... </div> (Powerful and easy)
+        <section class="space" id="process-sec"> ... </div> (How It Work)
+        <div class="customiization-area space"> ... </div> (Customizations & Analysis)
+        <div class="space"> (Counter Area before download) ... </div> (Revolutionize Your Workflow)
+        <section class=" bg-theme" data-bg-src="{% static 'assets/img/bg/download-shape-1.png' %}"> ... </section> (Download Area)
+        <section class="space"> (Price Area) ... </section>
+        <section class="testi-area  overflow-hidden space"> ... </section> (Testimonial Area)
+        <section class="overflow-hidden space" id="blog-sec"> ... </section> (Blog Area)
+    -->
+    <!-- SECTIONS TO BE REMOVED END -->
+
+
+    <!--==============================
+    Footer Area
+    ==============================-->
+    <footer class="footer-wrapper footer-layout1">
+        <div class="container">
+            <!-- Newsletter section REMOVED -->
+            <!--
+            <div class="footer-top">
+                ... newsletter content ...
+            </div>
+            -->
+            <div class="widget-area">
+                <div class="row justify-content-between"> <!-- Changed to justify-content-center if only one column, or keep for potential future columns -->
+                    <div class="col-md-6 col-xxl-3 col-xl-4"> <!-- This can be col-12 or col-md-4 offset-md-4 for centering if it's the ONLY column -->
+                        <div class="widget footer-widget">
+                            <div class="th-widget-about">
+                                <div class="about-logo">
+                                    <!-- MODIFIED LOGO and Link -->
+                                    <a class="icon-masking" href="{% url 'core:home' %}"><img src="{% static 'assets/img/my_logo.png' %}" alt="HomeoAI" style="max-height: 40px;"></a>
+                                    <a href="{% url 'core:home' %}" style="text-decoration: none; color: inherit; font-size: 24px; font-weight: bold; margin-left: 10px;">HomeoAI</a>
+                                </div>
+                                <!-- MODIFIED About Text -->
+                                <p class="about-text">HomeoAI - [Your short tagline or mission statement here].</p>
+                                <div class="th-social">
+                                    <a href="https://www.facebook.com/[YourPage]"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="https://www.twitter.com/[YourHandle]"><i class="fab fa-twitter"></i></a>
+                                    <a href="https://www.linkedin.com/company/[YourCompany]"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="https://wa.me/[YourNumber]"><i class="fab fa-whatsapp"></i></a>
+                                    <!-- ADDED Instagram -->
+                                    <a href="https://www.instagram.com/[YourProfile]"><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Other widget columns REMOVED -->
+                    <!--
+                    <div class="col-md-6 col-xl-auto"> ... (Product) ... </div>
+                    <div class="col-md-6 col-xl-auto"> ... (Company) ... </div>
+                    <div class="col-md-6 col-xl-auto"> ... (Resources) ... </div>
+                    <div class="col-md-6 col-xl-auto"> ... (Services) ... </div>
+                    -->
+                </div>
+            </div>
+        </div>
+        <div class="copyright-wrap text-center">
+            <div class="container">
+                <!-- MODIFIED Copyright Text & URL -->
+                <p class="copyright-text">Copyright <i class="fal fa-copyright"></i> {% now "Y" %} <a href="{% url 'core:home' %}">HomeoAI</a>. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--********************************
+   		Code End  Here 
+	******************************** -->
+
+    <!-- Scroll To Top -->
+    <div class="scroll-top">
+        <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+            <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" style="transition: stroke-dashoffset 10ms linear 0s; stroke-dasharray: 307.919, 307.919; stroke-dashoffset: 307.919;">
+            </path>
+        </svg>
+    </div>
+
+    <!--==============================
+    All Js File
+    ============================== -->
+    <!-- Jquery -->
+    <script src="{% static 'assets/js/vendor/jquery-3.7.1.min.js' %}"></script>
+    <!-- Swiper Slider -->
+    <script src="{% static 'assets/js/swiper-bundle.min.js' %}"></script>
+    <!-- Bootstrap -->
+    <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+    <!-- Magnific Popup -->
+    <script src="{% static 'assets/js/jquery.magnific-popup.min.js' %}"></script>
+    <!-- Counter Up -->
+    <script src="{% static 'assets/js/jquery.counterup.min.js' %}"></script>
+    <!-- Circle Progress -->
+    <script src="{% static 'assets/js/circle-progress.js' %}"></script>
+    <!-- Range Slider -->
+    <!-- <script src="{% static 'assets/js/jquery-ui.min.js' %}"></script> --> <!-- Likely not needed now -->
+    <!-- Imagesloadedr -->
+    <script src="{% static 'assets/js/imagesloaded.pkgd.min.js' %}"></script>
+    <!-- isotope -->
+    <!-- <script src="{% static 'assets/js/isotope.pkgd.min.js' %}"></script> --> <!-- Likely not needed now -->
+    <!-- Tilt.jquery -->
+    <script src="{% static 'assets/js/tilt.jquery.min.js' %}"></script>
+    <!-- Nice-select -->
+    <!-- <script src="{% static 'assets/js/nice-select.min.js' %}"></script> --> <!-- Likely not needed now -->
+    <!-- wow -->
+    <script src="{% static 'assets/js/wow.min.js' %}"></script>
+
+    <!-- Main Js File -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+</body>
+
+</html>

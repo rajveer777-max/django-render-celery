@@ -1,0 +1,241 @@
+{# templates/waiting.html (PRODUCTION READY) #}
+{% extends 'base_generic.html' %} {# Assuming base_generic.html has the sidebar/navbar #}
+{% load static %}
+
+{% block title %}Processing Case {{ case.id }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* CSS variables like --top-navbar-height, --primary-blue, etc., are assumed from base_generic.html */
+    /* body font-family 'Inter' is assumed to be in base_generic.html */
+
+    .waiting-page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - var(--top-navbar-height, 60px) - 50px); /* Adjust 50px if you have a footer in base */
+        text-align: center;
+        padding: 30px;
+        color: var(--text-dark, #2d3748);
+    }
+
+    .waiting-page-container h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--primary-blue, #0d6efd);
+        margin-bottom: 15px;
+    }
+    .waiting-page-container h2 i {
+        margin-right: 10px;
+    }
+
+    .waiting-page-container .patient-name-emphasis {
+        font-weight: 600;
+        color: var(--secondary-accent, #17a2b8);
+    }
+
+    .waiting-page-container p {
+        font-size: 1.1rem;
+        color: #4a5568;
+        line-height: 1.7;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .loader { /* Same enhanced loader */
+        width: 60px; height: 60px; border-radius: 50%; display: inline-block;
+        position: relative; border: 3px solid;
+        border-color: var(--primary-blue, #0d6efd) var(--primary-blue, #0d6efd) transparent transparent;
+        box-sizing: border-box; animation: rotation 1s linear infinite; margin: 30px auto;
+    }
+    .loader::after, .loader::before {
+        content: ''; box-sizing: border-box; position: absolute; left: 0; right: 0;
+        top: 0; bottom: 0; margin: auto; border: 3px solid;
+        border-color: transparent transparent #FF3D00 #FF3D00; 
+        width: 50px; height: 50px; border-radius: 50%;
+        animation: rotationBack 0.5s linear infinite; transform-origin: center center;
+    }
+    .loader::before {
+        width: 40px; height: 40px;
+        border-color: transparent transparent var(--secondary-accent, #17a2b8) var(--secondary-accent, #17a2b8);
+        animation: rotation 1.5s linear infinite;
+    }
+    @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes rotationBack { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+
+    .status-text {
+        font-size: 1.2rem; font-weight: 500; margin-top: 10px;
+        margin-bottom: 20px; min-height: 1.5em;
+    }
+    .status-text .current-status-value { font-weight: 600; }
+    .status-text .current-status-value.status-ERROR { color: #dc3545; }
+    .status-text .current-status-value.status-COMPLETED { color: #198754; }
+
+    .dynamic-message-box {
+        margin-top: 25px; padding: 15px; background-color: #e9f5ff;
+        border-left: 4px solid var(--primary-blue, #0d6efd);
+        border-radius: 0 4px 4px 0; min-height: 60px; display: flex;
+        align-items: center; justify-content: center; max-width: 550px;
+        margin-left: auto; margin-right: auto;
+    }
+    .dynamic-message-box p { font-size: 0.95rem; color: #0a58ca; margin-bottom: 0; line-height: 1.5; }
+
+    #results-button-container .btn-success {
+        font-size: 1.1rem; padding: 12px 30px; font-weight: 500;
+    }
+    #results-button-container .btn-success i { margin-right: 8px; }
+
+    .dashboard-link { margin-top: 40px; font-size: 0.95rem; }
+    .dashboard-link a { color: var(--primary-blue, #0d6efd); text-decoration: none; font-weight: 500; }
+    .dashboard-link a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="waiting-page-container">
+    <h2><i class="fas fa-brain"></i>Processing Your Case ({{ case.id }})</h2>
+    <p>Thank you for submitting the details for <strong class="patient-name-emphasis">{{ case.patient_name|default:'the patient' }}</strong>.</p>
+    <p>Our AI is now analyzing the information. This process typically takes 1-2 minutes.</p>
+
+    <div class="loader my-4"></div>
+
+    <div class="status-text">
+        Current Status: <strong id="case-status" class="current-status-value status-{{case.status|upper}}">{{ case.get_status_display }}</strong>
+    </div>
+
+    <div id="dynamic-message-area" class="dynamic-message-box">
+        <p id="dynamic-message-text">Cross-referencing symptoms and remedies...</p> {# Default initial message #}
+    </div>
+
+    <div id="results-button-container" style="display: none; margin-top: 30px;">
+         <a href="{% url 'core:case_detail' case.id %}" class="btn btn-success btn-lg">
+            <i class="fas fa-poll"></i> View Results
+         </a>
+    </div>
+
+     <p class="dashboard-link">
+        <a href="{% url 'core:dashboard' %}"><i class="fas fa-arrow-left me-1"></i>Go back to Dashboard</a>
+        <br><small>(Analysis will continue in the background)</small>
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const caseId = {{ case.id }};
+        const statusElement = document.getElementById('case-status');
+        const resultsButtonContainer = document.getElementById('results-button-container');
+        const loaderElement = document.querySelector('.loader');
+        const dynamicMessageTextElement = document.getElementById('dynamic-message-text');
+
+        // ---- PRODUCTION MODE ----
+        const checkStatusUrl = "{% url 'core:check_case_status' case.id %}";
+
+        const funFacts = [
+            "Homeopathy was developed in the late 18th century by Samuel Hahnemann.",
+            "Our AI is diligently analyzing your case details...",
+            "The principle of 'like cures like' is fundamental to homeopathy.",
+            "Did you know? Some remedies are from the plant kingdom, others from minerals.",
+            "Just a moment more, our digital repertory is being consulted!",
+            "Homeopathy aims to treat the individual, not just the disease label.",
+            "Minimum dose is a key principle in homeopathic practice.",
+            "The vital force is considered central to health in homeopathy.",
+            "Careful observation is paramount in selecting a homeopathic remedy."
+        ];
+        let factIndex = Math.floor(Math.random() * funFacts.length);
+        let pollingInterval;
+        let factInterval;
+
+        function updateDynamicMessage() {
+            if (dynamicMessageTextElement) {
+                dynamicMessageTextElement.textContent = funFacts[factIndex];
+                factIndex = (factIndex + 1) % funFacts.length;
+            }
+        }
+
+        function stopPollingAndFacts() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            if (factInterval) clearInterval(factInterval);
+            if (loaderElement) loaderElement.style.display = 'none';
+        }
+
+        function handleFinalStatusUI(data) { // Renamed to reflect it's about UI for final states
+            stopPollingAndFacts(); // Stop polling, facts, and hide loader
+
+            if (statusElement) {
+                 statusElement.textContent = data.status_display || data.status.toUpperCase();
+                 statusElement.className = 'current-status-value status-' + data.status.toUpperCase();
+            }
+
+            if (data.status.toUpperCase() === 'COMPLETED') {
+                if (resultsButtonContainer) resultsButtonContainer.style.display = 'block';
+                if (dynamicMessageTextElement) dynamicMessageTextElement.textContent = "Analysis Complete! Your results are ready.";
+            } else if (data.status.toUpperCase() === 'ERROR') {
+                if (dynamicMessageTextElement) dynamicMessageTextElement.textContent = "An error occurred during analysis. Please try submitting the case again or contact support if the issue persists.";
+                // Optionally, you could show a "Try Again" button or different link here.
+            }
+        }
+
+        function checkStatus() {
+            fetch(checkStatusUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        // For server errors (5xx) or client errors (4xx) other than typical API responses
+                        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const currentStatusFromServer = (data.status || '').toUpperCase();
+                    const currentDisplayFromServer = data.status_display || currentStatusFromServer;
+
+                    console.log(`Checked status for case ${caseId}: "${currentDisplayFromServer}" (Raw: "${currentStatusFromServer}")`);
+
+                    if (currentStatusFromServer === 'COMPLETED' || currentStatusFromServer === 'ERROR') {
+                        handleFinalStatusUI(data);
+                    } else { // Still 'PROCESSING' or other intermediary states
+                        if (statusElement) {
+                            statusElement.textContent = currentDisplayFromServer;
+                            statusElement.className = 'current-status-value status-' + currentStatusFromServer;
+                        }
+                        // Ensure loader is visible during processing
+                        if (loaderElement && (loaderElement.style.display === 'none' || !loaderElement.style.display) ) {
+                           loaderElement.style.display = 'inline-block';
+                        }
+                        updateDynamicMessage();
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error checking status for case ${caseId}:`, error);
+                    if (dynamicMessageTextElement) dynamicMessageTextElement.textContent = "There was a problem checking the status. Will keep trying...";
+                    // Don't stop polling on a simple fetch error, as it might be temporary network issues.
+                    // However, if it persists, the user has the dashboard link.
+                });
+        }
+
+        const initialStatusDisplay = "{{ case.get_status_display|escapejs }}";
+        const initialStatus = "{{ case.status|upper|escapejs }}";
+        
+        if (statusElement) {
+            statusElement.textContent = initialStatusDisplay;
+            statusElement.className = 'current-status-value status-' + initialStatus;
+        }
+
+        if (initialStatus !== 'COMPLETED' && initialStatus !== 'ERROR') {
+             console.log(`Starting polling for case ${caseId}, initial status: ${initialStatus}`);
+             if (loaderElement) loaderElement.style.display = 'inline-block'; // Ensure loader is visible
+             pollingInterval = setInterval(checkStatus, 10000); // Poll every 10 seconds for production
+             factInterval = setInterval(updateDynamicMessage, 7000);  // Change fact every 7 seconds
+             checkStatus();      // Initial check immediately
+             updateDynamicMessage(); // Show first dynamic message
+        } else {
+            console.log(`Case ${caseId} already in final state on load: ${initialStatus}`);
+            // Call handleFinalStatusUI to set up the page correctly if already completed/errored
+            handleFinalStatusUI({ status: initialStatus, status_display: initialStatusDisplay });
+        }
+    });
+</script>
+{% endblock %}

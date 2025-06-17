@@ -1,0 +1,466 @@
+{# templates/new_case.html #}
+{% extends 'base_generic.html' %}
+{% load static %}
+
+{% block title %}Create New Case{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  body.new-case-page {
+    font-family: 'Inter', sans-serif;
+    background-image: url("{% static 'assets/img/form_background.jpg' %}");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    padding-top: 70px;
+    color: #333;
+  }
+
+  .new-case-form-container {
+    max-width: 960px; margin: 40px auto; padding: 30px 40px;
+    background-color: rgba(255, 255, 255, 0.97);
+    border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .new-case-form-title h2 {
+    font-weight: 700; font-size: 28px; color: #1a202c;
+    margin-bottom: 10px; text-align: center;
+  }
+  .new-case-form-title p {
+    font-size: 16px; color: #4a5568; margin-bottom: 35px; text-align: center;
+  }
+
+  .form-section {
+    margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid #e2e8f0;
+  }
+  .form-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .form-section-heading {
+    font-size: 20px; font-weight: 600; color: #0d6efd; /* ACCENT BLUE */
+    margin-bottom: 25px; display: flex; align-items: center;
+  }
+  .form-section-heading i { font-size: 1.05em; /* Adjusted for better visual balance */ }
+
+  .form-subsection-heading { /* For "Past Illnesses" */
+    font-size: 1.1em; font-weight: 500; margin-bottom: 15px;
+    color: #0b5ed7; /* Darker blue or distinct accent */
+    display: flex; align-items: center;
+  }
+  .form-subsection-heading i { font-size: 1em; }
+
+
+  .form-field-group { margin-bottom: 20px; }
+  .form-input-flex { display: flex; flex-wrap: wrap; gap: 22px; margin-bottom: 20px; }
+  .form-input-flex > div {
+    flex: 1 1 calc(50% - 11px); min-width: 280px;
+  }
+  .form-input-flex > div.full-width { flex-basis: 100%; }
+
+  .form-label {
+    color: #4a5568; font-size: 14px; display: block;
+    margin-bottom: 8px; font-weight: 500;
+  }
+  .form-label .required-asterisk { color: #e53e3e; margin-left: 3px; }
+
+  .form-input, select.form-input {
+    width: 100%; padding: 12px 16px; border-radius: 8px;
+    border: 1px solid #cbd5e0; background: #ffffff;
+    font-weight: 400; font-size: 15px; color: #2d3748;
+    outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  textarea.form-input { resize: vertical; min-height: 100px; }
+  .form-input:focus {
+    border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  }
+  select.form-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+      background-repeat: no-repeat; background-position: right 0.9rem center;
+      background-size: 12px 12px; padding-right: 2.5rem;
+  }
+
+  .submit-btn {
+    font-size: 16px; border-radius: 8px; padding: 14px 30px;
+    border: none; font-weight: 600; background-color: #0d6efd;
+    color: white; cursor: pointer; margin-top: 30px;
+    display: block; width: 100%;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .submit-btn:hover {
+    background-color: #0b5ed7; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+  }
+
+  .field-error-message {
+    font-size: 0.85em; color: #e53e3e; display: block; margin-top: 5px;
+  }
+
+  .form-errors ul {
+    list-style-type: none; padding-left: 0; color: #e53e3e;
+    background-color: rgba(229, 62, 62, 0.05);
+    border: 1px solid rgba(229, 62, 62, 0.2);
+    padding: 12px 18px; border-radius: 8px; margin-bottom: 25px;
+  }
+  .form-errors ul li::before { content: "• "; padding-right: 6px; }
+
+  .illness-formset-container { margin-top: 20px; }
+  .illness-form {
+    border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 20px;
+    border-radius: 8px; background-color: #f8fafc; position: relative;
+  }
+  .illness-form .delete-checkbox-wrapper {
+    position: absolute; top: 15px; right: 15px; font-size: 0.9em;
+  }
+   .illness-form .delete-checkbox-wrapper .form-check-input { margin-right: 5px; }
+  .remove-illness-form-btn {
+    position: absolute; top: 10px; right: 10px;
+    padding: 0.3rem 0.6rem; font-size: 0.8rem; line-height: 1;
+  }
+
+  .add-illness-btn {
+    margin-top: 5px; margin-bottom: 25px; padding: 8px 15px; font-size: 14px;
+    font-weight: 500; border-radius: 6px; background-color: #6c757d;
+    color: white; border: none;
+  }
+  .add-illness-btn:hover { background-color: #5a6268; }
+  .add-illness-btn i { margin-right: 5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<script>document.body.classList.add('new-case-page');</script>
+
+<div class="new-case-form-container">
+    <form action="{% url 'core:new_case' %}" method="POST">
+      {% csrf_token %}
+
+      <div class="new-case-form-title">
+        <h2><i class="fas fa-file-medical-alt me-2"></i>New Case Details</h2>
+        <p>Fill in the patient and case information below to begin analysis.</p>
+      </div>
+
+      {% if form.non_field_errors %}
+          <div class="form-errors"><ul>{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+      {% endif %}
+      {% if illness_formset.non_form_errors %}
+          <div class="form-errors"><ul>{% for error in illness_formset.non_form_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+      {% endif %}
+
+    <div class="form-section">
+      <h3 class="form-section-heading"><i class="fas fa-user-circle me-2"></i>Patient Information</h3>
+      <div class="form-input-flex">
+         <div>
+            <label for="{{ form.patient_name.id_for_label }}" class="form-label">{{ form.patient_name.label }}{% if form.patient_name.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_name }}
+            {% if form.patient_name.errors %}<div class="field-error-message">{{ form.patient_name.errors|striptags }}</div>{% endif %}
+         </div>
+         <div>
+            <label for="{{ form.patient_age.id_for_label }}" class="form-label">{{ form.patient_age.label }}{% if form.patient_age.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_age }}
+            {% if form.patient_age.errors %}<div class="field-error-message">{{ form.patient_age.errors|striptags }}</div>{% endif %}
+         </div>
+      </div>
+      <div class="form-input-flex">
+         <div>
+            <label for="{{ form.patient_sex.id_for_label }}" class="form-label">{{ form.patient_sex.label }}{% if form.patient_sex.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_sex }}
+            {% if form.patient_sex.errors %}<div class="field-error-message">{{ form.patient_sex.errors|striptags }}</div>{% endif %}
+         </div>
+         <div>
+            <label for="{{ form.patient_occupation.id_for_label }}" class="form-label">{{ form.patient_occupation.label }}{% if form.patient_occupation.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_occupation }}
+            {% if form.patient_occupation.errors %}<div class="field-error-message">{{ form.patient_occupation.errors|striptags }}</div>{% endif %}
+         </div>
+      </div>
+       <div class="form-field-group">
+            <label for="{{ form.patient_address.id_for_label }}" class="form-label">{{ form.patient_address.label }}{% if form.patient_address.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_address }}
+            {% if form.patient_address.errors %}<div class="field-error-message">{{ form.patient_address.errors|striptags }}</div>{% endif %}
+       </div>
+      <div class="form-input-flex">
+         <div>
+            <label for="{{ form.patient_phone.id_for_label }}" class="form-label">{{ form.patient_phone.label }}{% if form.patient_phone.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_phone }}
+            {% if form.patient_phone.errors %}<div class="field-error-message">{{ form.patient_phone.errors|striptags }}</div>{% endif %}
+         </div>
+         <div>
+            <label for="{{ form.opd_no.id_for_label }}" class="form-label">{{ form.opd_no.label }}{% if form.opd_no.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.opd_no }}
+            {% if form.opd_no.errors %}<div class="field-error-message">{{ form.opd_no.errors|striptags }}</div>{% endif %}
+         </div>
+      </div>
+       <div class="form-field-group">
+            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }}{% if form.date.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.date }}
+            {% if form.date.errors %}<div class="field-error-message">{{ form.date.errors|striptags }}</div>{% endif %}
+       </div>
+    </div>
+
+
+    <div class="form-section">
+      <h3 class="form-section-heading"><i class="fas fa-notes-medical me-2"></i>Presenting Complaints & History</h3>
+      <div class="form-field-group">
+          <label for="{{ form.presenting_complaints.id_for_label }}" class="form-label">{{ form.presenting_complaints.label }}{% if form.presenting_complaints.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+          {{ form.presenting_complaints }}
+          {% if form.presenting_complaints.errors %}<div class="field-error-message">{{ form.presenting_complaints.errors|striptags }}</div>{% endif %}
+      </div>
+      <div class="form-field-group">
+          <label for="{{ form.history_of_present_illness.id_for_label }}" class="form-label">{{ form.history_of_present_illness.label }}{% if form.history_of_present_illness.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+          {{ form.history_of_present_illness }}
+          {% if form.history_of_present_illness.errors %}<div class="field-error-message">{{ form.history_of_present_illness.errors|striptags }}</div>{% endif %}
+      </div>
+    </div>
+
+
+    <div class="form-section">
+      <h3 class="form-section-heading"><i class="fas fa-history me-2"></i>Past History</h3>
+      <div class="form-field-group">
+          <label for="{{ form.past_history_vaccination.id_for_label }}" class="form-label">{{ form.past_history_vaccination.label }}{% if form.past_history_vaccination.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+          {{ form.past_history_vaccination }}
+          {% if form.past_history_vaccination.errors %}<div class="field-error-message">{{ form.past_history_vaccination.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="illness-formset-container">
+        <h4 class="form-subsection-heading"><i class="fas fa-capsules me-2"></i>Past Illnesses</h4>
+        {{ illness_formset.management_form }}
+        <div id="illness-forms-container">
+            {% for illness_form in illness_formset %}
+                <div class="illness-form">
+                     {% if illness_form.instance.pk and illness_formset.can_delete %}
+                        <div class="delete-checkbox-wrapper form-check">
+                             <input type="checkbox" name="{{ illness_form.DELETE.html_name }}" id="{{ illness_form.DELETE.id_for_label }}" class="form-check-input">
+                             <label class="form-check-label" for="{{ illness_form.DELETE.id_for_label }}">Delete this illness</label>
+                        </div>
+                     {% endif %}
+                    {{ illness_form.id }}
+                    <div class="form-input-flex">
+                        <div>
+                            <label for="{{ illness_form.disease.id_for_label }}" class="form-label">{{ illness_form.disease.label }}{% if illness_form.disease.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                            {{ illness_form.disease }}
+                            {% if illness_form.disease.errors %}<div class="field-error-message">{{ illness_form.disease.errors|striptags }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ illness_form.approximate_age.id_for_label }}" class="form-label">{{ illness_form.approximate_age.label }}{% if illness_form.approximate_age.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                            {{ illness_form.approximate_age }}
+                            {% if illness_form.approximate_age.errors %}<div class="field-error-message">{{ illness_form.approximate_age.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                     <div class="form-field-group">
+                        <label for="{{ illness_form.duration.id_for_label }}" class="form-label">{{ illness_form.duration.label }}{% if illness_form.duration.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ illness_form.duration }}
+                        {% if illness_form.duration.errors %}<div class="field-error-message">{{ illness_form.duration.errors|striptags }}</div>{% endif %}
+                     </div>
+                     <div class="form-field-group">
+                        <label for="{{ illness_form.treatment.id_for_label }}" class="form-label">{{ illness_form.treatment.label }}{% if illness_form.treatment.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ illness_form.treatment }}
+                        {% if illness_form.treatment.errors %}<div class="field-error-message">{{ illness_form.treatment.errors|striptags }}</div>{% endif %}
+                     </div>
+                     <div class="form-field-group">
+                        <label for="{{ illness_form.completely_recovered.id_for_label }}" class="form-label">{{ illness_form.completely_recovered.label }}{% if illness_form.completely_recovered.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ illness_form.completely_recovered }}
+                        {% if illness_form.completely_recovered.errors %}<div class="field-error-message">{{ illness_form.completely_recovered.errors|striptags }}</div>{% endif %}
+                     </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="empty-illness-form" style="display: none;">
+             <div class="illness-form">
+                <button type="button" class="btn btn-danger btn-sm remove-illness-form-btn"><i class="fas fa-times"></i></button>
+                {{ illness_formset.empty_form.id }}
+                <div class="form-input-flex">
+                    <div>
+                        <label for="{{ illness_formset.empty_form.disease.id_for_label }}" class="form-label">{{ illness_formset.empty_form.disease.label }}{% if illness_formset.empty_form.disease.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ illness_formset.empty_form.disease }}
+                    </div>
+                    <div>
+                        <label for="{{ illness_formset.empty_form.approximate_age.id_for_label }}" class="form-label">{{ illness_formset.empty_form.approximate_age.label }}{% if illness_formset.empty_form.approximate_age.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ illness_formset.empty_form.approximate_age }}
+                    </div>
+                </div>
+                 <div class="form-field-group">
+                    <label for="{{ illness_formset.empty_form.duration.id_for_label }}" class="form-label">{{ illness_formset.empty_form.duration.label }}{% if illness_formset.empty_form.duration.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                    {{ illness_formset.empty_form.duration }}
+                 </div>
+                 <div class="form-field-group">
+                    <label for="{{ illness_formset.empty_form.treatment.id_for_label }}" class="form-label">{{ illness_formset.empty_form.treatment.label }}{% if illness_formset.empty_form.treatment.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                    {{ illness_formset.empty_form.treatment }}
+                 </div>
+                 <div class="form-field-group">
+                    <label for="{{ illness_formset.empty_form.completely_recovered.id_for_label }}" class="form-label">{{ illness_formset.empty_form.completely_recovered.label }}{% if illness_formset.empty_form.completely_recovered.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                    {{ illness_formset.empty_form.completely_recovered }}
+                 </div>
+            </div>
+        </div>
+        <button type="button" id="add-illness-button" class="add-illness-btn"><i class="fas fa-plus"></i> Add Another Illness</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+       <h3 class="form-section-heading"><i class="fas fa-users me-2"></i>Family History</h3>
+       <div class="form-field-group">
+            <label for="{{ form.family_history.id_for_label }}" class="form-label">{{ form.family_history.label }}{% if form.family_history.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.family_history }}
+            {% if form.family_history.errors %}<div class="field-error-message">{{ form.family_history.errors|striptags }}</div>{% endif %}
+       </div>
+    </div>
+
+    <div class="form-section">
+       <h3 class="form-section-heading"><i class="fas fa-id-badge me-2"></i>Personal History</h3>
+       <div class="form-input-flex">
+           <div><label for="{{ form.personal_thermal_state.id_for_label }}" class="form-label">{{ form.personal_thermal_state.label }}{% if form.personal_thermal_state.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_thermal_state }}{% if form.personal_thermal_state.errors %}<div class="field-error-message">{{ form.personal_thermal_state.errors|striptags }}</div>{% endif %}</div>
+           <div><label for="{{ form.personal_perspiration.id_for_label }}" class="form-label">{{ form.personal_perspiration.label }}{% if form.personal_perspiration.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_perspiration }}{% if form.personal_perspiration.errors %}<div class="field-error-message">{{ form.personal_perspiration.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+           <div><label for="{{ form.personal_appetite.id_for_label }}" class="form-label">{{ form.personal_appetite.label }}{% if form.personal_appetite.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_appetite }}{% if form.personal_appetite.errors %}<div class="field-error-message">{{ form.personal_appetite.errors|striptags }}</div>{% endif %}</div>
+           <div><label for="{{ form.personal_diet.id_for_label }}" class="form-label">{{ form.personal_diet.label }}{% if form.personal_diet.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_diet }}{% if form.personal_diet.errors %}<div class="field-error-message">{{ form.personal_diet.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+           <div><label for="{{ form.personal_desire.id_for_label }}" class="form-label">{{ form.personal_desire.label }}{% if form.personal_desire.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_desire }}{% if form.personal_desire.errors %}<div class="field-error-message">{{ form.personal_desire.errors|striptags }}</div>{% endif %}</div>
+           <div><label for="{{ form.personal_aversion.id_for_label }}" class="form-label">{{ form.personal_aversion.label }}{% if form.personal_aversion.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_aversion }}{% if form.personal_aversion.errors %}<div class="field-error-message">{{ form.personal_aversion.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.personal_thirst.id_for_label }}" class="form-label">{{ form.personal_thirst.label }}{% if form.personal_thirst.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_thirst }}{% if form.personal_thirst.errors %}<div class="field-error-message">{{ form.personal_thirst.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.personal_urine.id_for_label }}" class="form-label">{{ form.personal_urine.label }}{% if form.personal_urine.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_urine }}{% if form.personal_urine.errors %}<div class="field-error-message">{{ form.personal_urine.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.personal_bowels.id_for_label }}" class="form-label">{{ form.personal_bowels.label }}{% if form.personal_bowels.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_bowels }}{% if form.personal_bowels.errors %}<div class="field-error-message">{{ form.personal_bowels.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.personal_habits_addiction.id_for_label }}" class="form-label">{{ form.personal_habits_addiction.label }}{% if form.personal_habits_addiction.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_habits_addiction }}{% if form.personal_habits_addiction.errors %}<div class="field-error-message">{{ form.personal_habits_addiction.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-field-group"><label for="{{ form.personal_sleep.id_for_label }}" class="form-label">{{ form.personal_sleep.label }}{% if form.personal_sleep.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_sleep }}{% if form.personal_sleep.errors %}<div class="field-error-message">{{ form.personal_sleep.errors|striptags }}</div>{% endif %}</div>
+       <div class="form-field-group"><label for="{{ form.personal_dreams.id_for_label }}" class="form-label">{{ form.personal_dreams.label }}{% if form.personal_dreams.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_dreams }}{% if form.personal_dreams.errors %}<div class="field-error-message">{{ form.personal_dreams.errors|striptags }}</div>{% endif %}</div>
+       <div class="form-field-group"><label for="{{ form.personal_other.id_for_label }}" class="form-label">{{ form.personal_other.label }}{% if form.personal_other.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.personal_other }}{% if form.personal_other.errors %}<div class="field-error-message">{{ form.personal_other.errors|striptags }}</div>{% endif %}</div>
+    </div>
+
+    <div class="form-section">
+       <h3 class="form-section-heading"><i class="fas fa-venus me-2"></i>Menstrual History (if applicable)</h3>
+       <div class="form-input-flex">
+           <div><label for="{{ form.menstrual_age_of_puberty.id_for_label }}" class="form-label">{{ form.menstrual_age_of_puberty.label }}{% if form.menstrual_age_of_puberty.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_age_of_puberty }}{% if form.menstrual_age_of_puberty.errors %}<div class="field-error-message">{{ form.menstrual_age_of_puberty.errors|striptags }}</div>{% endif %}</div>
+           <div><label for="{{ form.menstrual_menses.id_for_label }}" class="form-label">{{ form.menstrual_menses.label }}{% if form.menstrual_menses.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_menses }}{% if form.menstrual_menses.errors %}<div class="field-error-message">{{ form.menstrual_menses.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-field-group"><label for="{{ form.menstrual_menses_complaints.id_for_label }}" class="form-label">{{ form.menstrual_menses_complaints.label }}{% if form.menstrual_menses_complaints.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_menses_complaints }}{% if form.menstrual_menses_complaints.errors %}<div class="field-error-message">{{ form.menstrual_menses_complaints.errors|striptags }}</div>{% endif %}</div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.menstrual_age_at_marriage.id_for_label }}" class="form-label">{{ form.menstrual_age_at_marriage.label }}{% if form.menstrual_age_at_marriage.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_age_at_marriage }}{% if form.menstrual_age_at_marriage.errors %}<div class="field-error-message">{{ form.menstrual_age_at_marriage.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.menstrual_lmp.id_for_label }}" class="form-label">{{ form.menstrual_lmp.label }}{% if form.menstrual_lmp.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_lmp }}{% if form.menstrual_lmp.errors %}<div class="field-error-message">{{ form.menstrual_lmp.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-field-group"><label for="{{ form.menstrual_menses_triggers.id_for_label }}" class="form-label">{{ form.menstrual_menses_triggers.label }}{% if form.menstrual_menses_triggers.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_menses_triggers }}{% if form.menstrual_menses_triggers.errors %}<div class="field-error-message">{{ form.menstrual_menses_triggers.errors|striptags }}</div>{% endif %}</div>
+       <div class="form-field-group"><label for="{{ form.menstrual_leucorrhea.id_for_label }}" class="form-label">{{ form.menstrual_leucorrhea.label }}{% if form.menstrual_leucorrhea.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_leucorrhea }}{% if form.menstrual_leucorrhea.errors %}<div class="field-error-message">{{ form.menstrual_leucorrhea.errors|striptags }}</div>{% endif %}</div>
+       <div class="form-field-group"><label for="{{ form.menstrual_pregnancy.id_for_label }}" class="form-label">{{ form.menstrual_pregnancy.label }}{% if form.menstrual_pregnancy.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_pregnancy }}{% if form.menstrual_pregnancy.errors %}<div class="field-error-message">{{ form.menstrual_pregnancy.errors|striptags }}</div>{% endif %}</div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.menstrual_menopause_age.id_for_label }}" class="form-label">{{ form.menstrual_menopause_age.label }}{% if form.menstrual_menopause_age.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_menopause_age }}{% if form.menstrual_menopause_age.errors %}<div class="field-error-message">{{ form.menstrual_menopause_age.errors|striptags }}</div>{% endif %}</div>
+            <div></div> {# Spacer #}
+       </div>
+       <div class="form-field-group"><label for="{{ form.menstrual_menopause_complaints.id_for_label }}" class="form-label">{{ form.menstrual_menopause_complaints.label }}{% if form.menstrual_menopause_complaints.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.menstrual_menopause_complaints }}{% if form.menstrual_menopause_complaints.errors %}<div class="field-error-message">{{ form.menstrual_menopause_complaints.errors|striptags }}</div>{% endif %}</div>
+    </div>
+
+    <div class="form-section">
+       <h3 class="form-section-heading"><i class="fas fa-brain me-2"></i>Patient as Person (Mind/Disposition)</h3>
+       <div class="form-field-group">
+            <label for="{{ form.patient_as_person.id_for_label }}" class="form-label">{{ form.patient_as_person.label }}{% if form.patient_as_person.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.patient_as_person }}
+            {% if form.patient_as_person.errors %}<div class="field-error-message">{{ form.patient_as_person.errors|striptags }}</div>{% endif %}
+       </div>
+    </div>
+
+    <div class="form-section">
+       <h3 class="form-section-heading"><i class="fas fa-stethoscope me-2"></i>Physical Examination</h3>
+       <div class="form-input-flex">
+           <div><label for="{{ form.physical_built.id_for_label }}" class="form-label">{{ form.physical_built.label }}{% if form.physical_built.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_built }}{% if form.physical_built.errors %}<div class="field-error-message">{{ form.physical_built.errors|striptags }}</div>{% endif %}</div>
+           <div><label for="{{ form.physical_head.id_for_label }}" class="form-label">{{ form.physical_head.label }}{% if form.physical_head.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_head }}{% if form.physical_head.errors %}<div class="field-error-message">{{ form.physical_head.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_throat.id_for_label }}" class="form-label">{{ form.physical_throat.label }}{% if form.physical_throat.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_throat }}{% if form.physical_throat.errors %}<div class="field-error-message">{{ form.physical_throat.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_hair.id_for_label }}" class="form-label">{{ form.physical_hair.label }}{% if form.physical_hair.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_hair }}{% if form.physical_hair.errors %}<div class="field-error-message">{{ form.physical_hair.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_mouth.id_for_label }}" class="form-label">{{ form.physical_mouth.label }}{% if form.physical_mouth.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_mouth }}{% if form.physical_mouth.errors %}<div class="field-error-message">{{ form.physical_mouth.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_ear.id_for_label }}" class="form-label">{{ form.physical_ear.label }}{% if form.physical_ear.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_ear }}{% if form.physical_ear.errors %}<div class="field-error-message">{{ form.physical_ear.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_nails.id_for_label }}" class="form-label">{{ form.physical_nails.label }}{% if form.physical_nails.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_nails }}{% if form.physical_nails.errors %}<div class="field-error-message">{{ form.physical_nails.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_tongue.id_for_label }}" class="form-label">{{ form.physical_tongue.label }}{% if form.physical_tongue.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_tongue }}{% if form.physical_tongue.errors %}<div class="field-error-message">{{ form.physical_tongue.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_eyes.id_for_label }}" class="form-label">{{ form.physical_eyes.label }}{% if form.physical_eyes.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_eyes }}{% if form.physical_eyes.errors %}<div class="field-error-message">{{ form.physical_eyes.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_extremities.id_for_label }}" class="form-label">{{ form.physical_extremities.label }}{% if form.physical_extremities.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_extremities }}{% if form.physical_extremities.errors %}<div class="field-error-message">{{ form.physical_extremities.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_teeth.id_for_label }}" class="form-label">{{ form.physical_teeth.label }}{% if form.physical_teeth.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_teeth }}{% if form.physical_teeth.errors %}<div class="field-error-message">{{ form.physical_teeth.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_skin.id_for_label }}" class="form-label">{{ form.physical_skin.label }}{% if form.physical_skin.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_skin }}{% if form.physical_skin.errors %}<div class="field-error-message">{{ form.physical_skin.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_lymph_glands.id_for_label }}" class="form-label">{{ form.physical_lymph_glands.label }}{% if form.physical_lymph_glands.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_lymph_glands }}{% if form.physical_lymph_glands.errors %}<div class="field-error-message">{{ form.physical_lymph_glands.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_gums.id_for_label }}" class="form-label">{{ form.physical_gums.label }}{% if form.physical_gums.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_gums }}{% if form.physical_gums.errors %}<div class="field-error-message">{{ form.physical_gums.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_nose.id_for_label }}" class="form-label">{{ form.physical_nose.label }}{% if form.physical_nose.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_nose }}{% if form.physical_nose.errors %}<div class="field-error-message">{{ form.physical_nose.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_bp.id_for_label }}" class="form-label">{{ form.physical_bp.label }}{% if form.physical_bp.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_bp }}{% if form.physical_bp.errors %}<div class="field-error-message">{{ form.physical_bp.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_temperature.id_for_label }}" class="form-label">{{ form.physical_temperature.label }}{% if form.physical_temperature.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_temperature }}{% if form.physical_temperature.errors %}<div class="field-error-message">{{ form.physical_temperature.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_pulse.id_for_label }}" class="form-label">{{ form.physical_pulse.label }}{% if form.physical_pulse.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_pulse }}{% if form.physical_pulse.errors %}<div class="field-error-message">{{ form.physical_pulse.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-input-flex">
+            <div><label for="{{ form.physical_rr.id_for_label }}" class="form-label">{{ form.physical_rr.label }}{% if form.physical_rr.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_rr }}{% if form.physical_rr.errors %}<div class="field-error-message">{{ form.physical_rr.errors|striptags }}</div>{% endif %}</div>
+            <div><label for="{{ form.physical_spo2.id_for_label }}" class="form-label">{{ form.physical_spo2.label }}{% if form.physical_spo2.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_spo2 }}{% if form.physical_spo2.errors %}<div class="field-error-message">{{ form.physical_spo2.errors|striptags }}</div>{% endif %}</div>
+       </div>
+       <div class="form-field-group"><label for="{{ form.physical_other.id_for_label }}" class="form-label">{{ form.physical_other.label }}{% if form.physical_other.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>{{ form.physical_other }}{% if form.physical_other.errors %}<div class="field-error-message">{{ form.physical_other.errors|striptags }}</div>{% endif %}</div>
+    </div>
+
+    <div class="form-section">
+       <h3 class="form-section-heading"><i class="fas fa-microscope me-2"></i>Systemic Examination</h3>
+       <div class="form-field-group">
+            <label for="{{ form.systemic_examination.id_for_label }}" class="form-label">{{ form.systemic_examination.label }}{% if form.systemic_examination.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+            {{ form.systemic_examination }}
+            {% if form.systemic_examination.errors %}<div class="field-error-message">{{ form.systemic_examination.errors|striptags }}</div>{% endif %}
+       </div>
+    </div>
+
+      <button type="submit" class="submit-btn"><i class="fas fa-paper-plane me-2"></i>Submit Case for Analysis</button>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const addIllnessButton = document.getElementById('add-illness-button');
+      const formsContainer = document.getElementById('illness-forms-container');
+      const emptyFormTemplateHTML = document.getElementById('empty-illness-form').innerHTML;
+      const totalFormsInput = document.querySelector('[name="{{ illness_formset.prefix }}-TOTAL_FORMS"]');
+
+      if (addIllnessButton && formsContainer && emptyFormTemplateHTML && totalFormsInput) {
+        addIllnessButton.addEventListener('click', function() {
+            let currentFormCount = parseInt(totalFormsInput.value, 10);
+            let newFormHtml = emptyFormTemplateHTML.replace(/__prefix__/g, currentFormCount);
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newFormHtml.trim();
+            let newFormElement = tempDiv.firstElementChild;
+            formsContainer.appendChild(newFormElement);
+            totalFormsInput.value = currentFormCount + 1;
+        });
+      }
+
+      if (formsContainer) {
+        formsContainer.addEventListener('click', function(event) {
+            let removeButton = event.target.closest('.remove-illness-form-btn');
+            if (removeButton) {
+                event.preventDefault();
+                let formToRemove = removeButton.closest('.illness-form');
+                let deleteCheckbox = formToRemove.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                    formToRemove.style.display = 'none';
+                } else {
+                    formToRemove.remove();
+                }
+            }
+        });
+      }
+  });
+</script>
+{% endblock %}
