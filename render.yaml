@@ -1,4 +1,4 @@
-# render.yaml (Final Corrected Version)
+# render.yaml (Corrected for the 'source' field)
 
 databases:
   # Free PostgreSQL Database
@@ -12,8 +12,8 @@ services:
   - type: redis
     name: my-redis
     plan: free
-    ipAllowList: # <--- THIS IS THE FIX
-      - cidr: 0.0.0.0/0
+    ipAllowList:
+      - source: 0.0.0.0/0 # <--- THE FIX: It's 'source', not 'cidr'.
         description: "Allow all internal services"
 
   # Free Web Service for Django
