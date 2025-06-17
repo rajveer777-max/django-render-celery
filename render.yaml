@@ -1,22 +1,16 @@
-# render.yaml (Corrected for the 'source' field)
+# render.yaml (Minimal version to bypass errors)
 
 databases:
-  # Free PostgreSQL Database
   - name: my-postgres-db
-    databaseName: homeo_expert_ai_db
-    user: db_user
     plan: free
 
 services:
-  # Free Redis Instance
   - type: redis
     name: my-redis
     plan: free
     ipAllowList:
-      - source: 0.0.0.0/0 # <--- THE FIX: It's 'source', not 'cidr'.
-        description: "Allow all internal services"
+      - source: 0.0.0.0/0
 
-  # Free Web Service for Django
   - type: web
     name: django-web-app
     env: python
@@ -24,22 +18,11 @@ services:
     buildCommand: "./build.sh"
     startCommand: "gunicorn homeo_expert_ai.wsgi"
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: my-postgres-db
-          property: connectionString
-      - key: REDIS_URL
-        fromRedis:
-          name: my-redis
-          property: connectionString
       - key: SECRET_KEY
         generateValue: true
-      - key: GEMINI_API_KEY
-        sync: false
       - key: PYTHON_VERSION
         value: 3.10.12
 
-  # Free Background Worker for Celery
   - type: worker
     name: celery-worker
     env: python
@@ -47,20 +30,9 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A homeo_expert_ai worker --loglevel=info"
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: my-postgres-db
-          property: connectionString
-      - key: REDIS_URL
-        fromRedis:
-          name: my-redis
-          property: connectionString
-      - key: SECRET_KEY
-        fromService:
+      - fromService: # This links the SECRET_KEY from the web service
           type: web
           name: django-web-app
           envVarKey: SECRET_KEY
-      - key: GEMINI_API_KEY
-        sync: false
       - key: PYTHON_VERSION
         value: 3.10.12
