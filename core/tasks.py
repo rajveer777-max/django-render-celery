@@ -32,7 +32,7 @@ def get_gemini_response(prompt):
         )
         return None
     try:
-        model_name = "gemini-2.5-pro"
+        model_name = "gemini-2.5-flash-preview-04-17-thinking"
         print(f"DEBUG tasks.py: Using model name: {model_name}")
         model = genai.GenerativeModel(model_name=model_name)
         response = model.generate_content(prompt)
